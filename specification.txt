@@ -1,0 +1,45 @@
+Let's call the app Qrybots.
+
+The app should have a config folder under the same directory of executable. In this config folder, it saves a bunch of xml files. Each file represents one query.
+
+The main window lists a bunch of buttons in a grid. The title of the button is the same as the file name of xml file. For example, there is a file named "Query by Code.xml", then the button title is "Query by Code". For simplicity, no need to show tooltip for description.  So the app just searchs file names in the folder to generate buttons.
+
+When user click a button, the query interface window shows up. This is the time to parse the corresponding xml file. e.g. "Query by Code.xml". Let's explain this xml file:
+
+<task desc="Query patients by ICD codes and aggregate counts by state and zip" sql="parameterized.sql">
+
+The app reads the desc and show it at upper section of the window. The app finds parameterized.sql in the folder and read it in. 
+
+<input name="id" type="str" id="1"/>
+
+The app reads every input element. Each input element represents a widget, e.g. a "str" type of element is a text box. The "date" type element is a date widget. App does necesary check for certain data type, e.g. a "int" type must be a integer. The id attribute is used to replace any occurance of {1} in the parameterized.sql. And a date input should be formated as YYYY-MM-DD.
+
+<input name="codes" type="csv" table="Req{1}_codes" id="0">
+	<columns>
+		<column name="code" pos=1 type="str" length="10"/>
+	</columns>
+</input>
+
+This is a special kind of input, which is to upload a column based text file. For the upper xml, app shows a upload widget to accept a csv file, then generate and execute following SQL code in database. Here we assume user input 98 for the "id" field, and the csv contains 3 rows of values as test_codes.csv.  The csv could potentially have more than 1 column. 
+
+CREATE TABLE Req98_codes (code VARCHAR2(10));
+INSERT INTO Req98_codes VALUES ('571.8');
+INSERT INTO Req98_codes VALUES ('K76.0');
+INSERT INTO Req98_codes VALUES ('K76.89');
+
+These SQL should run before anything in parameterized.sql. After replacing all the parameters, the parameterized.sql should look the same as translated.sql
+
+<tables>
+	<table name="Req{1}_by_state" export="true" keep="true"/>
+</tables>
+
+The tables tag contains all the temporary tables used in the SQL. Before running translated SQL, the app should drop any tables listed here to avoid conflict.
+
+Once SQL execution has finished, the app downloads the data from any table tagged with "export". Also drop any table not tagged "keep". By default, a table is not being exported or kept.
+
+In summary, here is the steps:
+- Drop all the tables listed in tables tag. If table does not exist, skip it, don't prompt error. 
+- Create table for csv type input and load data into it.
+- Run translated SQL statements one by one seperated by semicolon. Show progress bar. Prompt error if occurs.
+- Drop tables as indicated.
+- Export tables as indicated.
