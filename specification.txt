@@ -41,5 +41,5 @@ In summary, here is the steps:
 - Drop all the tables listed in tables tag. If table does not exist, skip it, don't prompt error. 
 - Create table for csv type input and load data into it.
 - Run translated SQL statements one by one seperated by semicolon. Show progress bar. Prompt error if occurs.
-- Drop tables as indicated.
 - Export tables as indicated.
+- Drop tables as indicated.
