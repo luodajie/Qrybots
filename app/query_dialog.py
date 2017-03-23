@@ -13,9 +13,9 @@ class Query_Window(QtGui.QWidget):
 		for index, value in self.fields.iterrows():
 			# print index, value
 			self.label = QtGui.QLabel(index)
-			self.textEdit = QtGui.QLineEdit(index)
-			self.form.addRow(self.label, self.textEdit)
-			self.text_fields.append(str(self.textEdit.text()))
+			exec('self.textEdit'+index+' = QtGui.QLineEdit()')
+			exec('self.form.addRow(self.label, self.textEdit'+index+')')
+			# self.text_fields.append(str(self.textEdit.text()))
 		self.button = QtGui.QPushButton("Run")
 		self.vbox = QtGui.QVBoxLayout()
 		self.button.clicked.connect(self.display)
@@ -25,7 +25,8 @@ class Query_Window(QtGui.QWidget):
 		self.setLayout(self.vbox)
 
 	def display(self):
-		print self.text_fields
+		for index, value in self.fields.iterrows():
+			print eval('self.textEdit'+index+'.text()')
 
 if __name__ == "__main__":
 	import sys
