@@ -1,17 +1,26 @@
 from PyQt4 import QtGui, QtCore
+from functools import partial
 
 from read_xml import Xml_File_Parser
 
 class Window(QtGui.QMainWindow):
-	def __init__(self, filename= [], parent=None):
+	def __init__(self, filename= None, parent=None):
 		super(Window, self).__init__(parent)
 		self.filename_list = filename
 		self.resize(500,400)
 		self.widget = QtGui.QWidget()
 
-		self.label = QtGui.QLabel("Please click the button below to run the operation:", self)
+		self.dateEdit = QtGui.QDateEdit(QtCore.QDate.currentDate().addDays(-1))
+		# self.dateEdit.setDate(QtCore.QDate(2006, 12, 22))
+		self.dateEdit.setCalendarPopup(True)
+		self.date = self.dateEdit.date()
+
+		print self.date
+		# self.dateEdit.setDisplayFormat("YYYYDDMM")
+		self.label = QtGui.QLabel("Please click the button below to run the Query:", self)
 		self.hbox = QtGui.QHBoxLayout()
 		self.hbox.addWidget(self.label)
+		self.hbox.addWidget(self.dateEdit)
 		self.blank = QtGui.QVBoxLayout()
 		self.label1 = QtGui.QLabel("")
 		self.label1.setFixedHeight(50)
@@ -54,10 +63,18 @@ class Window(QtGui.QMainWindow):
 			if name == '':
 				continue
 			self.button = QtGui.QPushButton(name)
+			self.button.clicked.connect(partial(self.get_attrib_values, self.button.text()))
 			self.button.setFixedHeight(40)
 			self.button.setPalette(self.palette1)
 			self.button.setFont(self.font1)
 			self.grid.addWidget(self.button, *position)
+
+
+	def get_attrib_values(self, text):
+		date = self.date.toPyDate()
+		print date
+		xml_file = str(text)+'.xml'
+		xml_instance.fetch_file_data(xml_file)
 
 
 if __name__ == "__main__":

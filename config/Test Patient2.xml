@@ -9,7 +9,7 @@
 
 	<input name="codes" type="csv" table="Req{1}_codes">
 		<columns>
-			<column name="code" pos=1 type="str" length="10"/>
+			<column name="code" pos="1" type="str" length="10"/>
 		</columns>
 	</input>
 
