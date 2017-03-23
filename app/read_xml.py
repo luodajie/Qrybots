@@ -1,5 +1,8 @@
 import os
+import pandas as pd
 import xml.etree.ElementTree as ET
+
+from query_dialog import Query_Window
 
 
 class Xml_File_Parser(object):
@@ -17,25 +20,21 @@ class Xml_File_Parser(object):
 
 	def fetch_file_data(self, file_name):
 		fetched_file =  os.path.join(self.path, file_name)
-		print fetched_file
 		tree = ET.parse(fetched_file)
 		root = tree.getroot()
-		x = root.get('sql')
-		print x
-		# dic = {}
-		# lsts1 = []
+		dicst = {}
+		field_name = []
+		field_type = []
+		# x = root.get('sql')
 		for child in root.iter('input'):
-		# 	# if not child.attrib['type'] =='csv':
 			name = child.get('name')
 			type = child.get('type')
-			print name, type
-		# 	lsts1.append(name)
-		# 	dic[x] =  lsts1
-		# for key, value in dic.iteritems():
-		# 	xml_name.append(key)
-		# 	xml_values.append(value)
-		# df = pd.DataFrame(data=xml_values, index=xml_name)
-		# return df
+			dicst[name] = type
+			field_name.append(name)
+			field_type.append(type)
+		df = pd.DataFrame(data=field_type, index= field_name)
+		self.wind = Query_Window(fields=df)
+		self.wind.show()
 
 
 # BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
