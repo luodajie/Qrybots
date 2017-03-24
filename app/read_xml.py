@@ -32,7 +32,8 @@ class Xml_File_Parser(object):
 			dicst[name] = type
 			field_name.append(name)
 			field_type.append(type)
-		df = pd.DataFrame(data=field_type, index= field_name)
+		df = pd.DataFrame(data=field_type, index= field_name, columns=['Type'])
+		# print df
 		self.wind = Query_Window(fields=df)
 		self.wind.show()
 

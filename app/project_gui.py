@@ -10,17 +10,10 @@ class Window(QtGui.QMainWindow):
 		self.resize(500,400)
 		self.widget = QtGui.QWidget()
 
-		self.dateEdit = QtGui.QDateEdit(QtCore.QDate.currentDate().addDays(-1))
-		# self.dateEdit.setDate(QtCore.QDate(2006, 12, 22))
-		self.dateEdit.setCalendarPopup(True)
-		self.date = self.dateEdit.date()
-
-		print self.date
-		# self.dateEdit.setDisplayFormat("YYYYDDMM")
 		self.label = QtGui.QLabel("Please click the button below to run the Query:", self)
 		self.hbox = QtGui.QHBoxLayout()
 		self.hbox.addWidget(self.label)
-		self.hbox.addWidget(self.dateEdit)
+		# self.hbox.addWidget(self.dateEdit)
 		self.blank = QtGui.QVBoxLayout()
 		self.label1 = QtGui.QLabel("")
 		self.label1.setFixedHeight(50)
@@ -71,8 +64,8 @@ class Window(QtGui.QMainWindow):
 
 
 	def get_attrib_values(self, text):
-		date = self.date.toPyDate()
-		print date
+		# date = self.date.toPyDate()
+		# print date
 		xml_file = str(text)+'.xml'
 		xml_instance.fetch_file_data(xml_file)
 

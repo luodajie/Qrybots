@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <task desc="Query patients by ICD codes and aggregate counts by state and zip" sql="parameterized.sql">
 
-	<input name="id" type="str" id="1"/>
+	<input name="hh" type="str" id="1"/>
 	<input name="year" type="int" id="2"/>
 	<input name="month" type="int" id="3"/>
 	<input name="start_date" type="date" id="4"/>
