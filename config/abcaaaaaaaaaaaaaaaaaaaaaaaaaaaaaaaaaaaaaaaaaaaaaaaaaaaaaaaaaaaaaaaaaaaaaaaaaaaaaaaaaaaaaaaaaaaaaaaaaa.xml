@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<task desc="Query patients by ICD codes and aggregate counts by state and zip" sql="parameterized.sql">
+
+	<input name="hh" type="str" id="1"/>
+	<input name="year" type="int" id="2"/>
+	<input name="month" type="int" id="3"/>
+	<input name="start_date" type="date" id="4"/>
+	<input name="end_date" type="date" id="5"/>
+
+	<input name="codes" type="csv" table="Req{1}_codes">
+		<columns>
+			<column name="code" pos="1" type="str" length="10"/>
+		</columns>
+	</input>
+
+	<tables>
+		<table name="Req{1}_by_state" export="true" keep="true"/>
+		<table name="Req{1}_by_zip" export="true" keep="true"/>
+		<table name="Req{1}_codes"/>
+		<table name="Req{1}_Join"/>
+		<table name="Req{1}_Join_DD" keep="true"/>
+		<table name="Req{1}_Specimen"/>
+	</tables>
+
+</task>
