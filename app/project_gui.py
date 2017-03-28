@@ -7,7 +7,10 @@ class Window(QtGui.QMainWindow):
 	def __init__(self, filename= None, parent=None):
 		super(Window, self).__init__(parent)
 		self.filename_list = filename
-		self.resize(500,400)
+		self.setGeometry(300, 150, 500, 400)
+		self.setWindowIcon(QtGui.QIcon("querybots.png"))
+		self.setWindowTitle("QryBots")
+		# self.resize(500,400)
 		self.widget = QtGui.QWidget()
 
 		self.label = QtGui.QLabel("Please click the button below to run the Query:", self)
@@ -64,8 +67,7 @@ class Window(QtGui.QMainWindow):
 
 
 	def get_attrib_values(self, text):
-		# date = self.date.toPyDate()
-		# print date
+
 		xml_file = str(text)+'.xml'
 		xml_instance.fetch_file_data(xml_file)
 
