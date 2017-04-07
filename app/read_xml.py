@@ -22,19 +22,18 @@ class Xml_File_Parser(object):
 		fetched_file =  os.path.join(self.path, file_name)
 		tree = ET.parse(fetched_file)
 		root = tree.getroot()
-		dicst = {}
+		description = root.get('desc')
 		field_name = []
 		field_type = []
 		# x = root.get('sql')
 		for child in root.iter('input'):
 			name = child.get('name')
 			type = child.get('type')
-			dicst[name] = type
 			field_name.append(name)
 			field_type.append(type)
 		df = pd.DataFrame(data=field_type, index= field_name, columns=['Type'])
 		# print df
-		self.wind = Query_Window(fields=df)
+		self.wind = Query_Window(fields=df, desc = description)
 		self.wind.show()
 
 
