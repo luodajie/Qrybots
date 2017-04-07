@@ -44,6 +44,7 @@ class Window(QtGui.QMainWindow):
 		self.vbox.addLayout(self.grid)
 		self.vbox.setAlignment(QtCore.Qt.AlignTop)
 		self.widget.setLayout(self.vbox)
+
 		self.setCentralWidget(self.widget)
 		self.show()
 
