@@ -22,8 +22,13 @@ class Query_Window(QtGui.QWidget):
 		# self.hbox.addWidget(self.desc_label)
 
 		self.horizontal = QtGui.QHBoxLayout()
+		# self.csv_layout = QtGui.QHBoxLayout()
 		self.save_horizontal = QtGui.QHBoxLayout()
 		self.horizontal_run = QtGui.QHBoxLayout()
+
+		self.upload = QtGui.QPushButton("Upload Codes", self)
+		self.upload.move(250, 150)
+		self.upload.setFixedWidth(100)
 
 		for index, value in self.fields.iterrows():
 			self.label = QtGui.QLabel(index)
@@ -34,17 +39,19 @@ class Query_Window(QtGui.QWidget):
 				exec('self.textEdit'+index+'.setFixedWidth(100)')
 
 			elif any(value == 'csv')and True:
-				exec ('self.textEdit'+index+' = QtGui.QLineEdit()')
-				exec('self.textEdit'+index+'.setReadOnly(True)')
+				# exec ('self.textEdit'+index+' = QtGui.QLineEdit()')
+				exec ('self.textEdit'+index+' = QtGui.QHBoxLayout()')
+				exec('self.csv_upload = QtGui.QLineEdit()')
+				# exec('self.csv_upload.setReadOnly(True)')
+				exec('self.textEdit'+index+'.addWidget(self.csv_upload)')
+				exec('self.textEdit'+index+'.addWidget(self.upload)')
+				# exec('self.form.addChildLayout(self.textEdit'+index+')')
 
 			else:
 				exec('self.textEdit'+index+' = QtGui.QLineEdit()')
 
 			exec('self.form.addRow(self.label, self.textEdit'+index+')')
 
-		self.upload = QtGui.QPushButton("Upload Codes", self)
-		self.upload.move(250, 150)
-		self.upload.setFixedWidth(100)
 
 		self.save_to_label = QtGui.QLabel('Save to: ')
 		self.save_to_text = QtGui.QLineEdit()
@@ -54,13 +61,10 @@ class Query_Window(QtGui.QWidget):
 		self.save_to.setFixedWidth(100)
 		self.save_to.clicked.connect(self.download)
 
-		self.save_form.addRow(self.save_to_label, self.save_to_text)
-
-		self.horizontal.setAlignment(QtCore.Qt.AlignJustify)
-		self.horizontal.addWidget(self.upload)
-
-		self.save_horizontal.setAlignment(QtCore.Qt.AlignJustify)
+		self.save_horizontal.addWidget(self.save_to_text)
 		self.save_horizontal.addWidget(self.save_to)
+
+		self.save_form.addRow(self.save_to_label, self.save_horizontal)
 
 		self.run_button = QtGui.QPushButton("Run")
 		self.run_button.setFixedWidth(200)
@@ -75,9 +79,7 @@ class Query_Window(QtGui.QWidget):
 		self.run_button.clicked.connect(self.display)
 		# self.vbox.addLayout(self.hbox)
 		self.vbox.addLayout(self.form)
-		self.vertical1.addLayout(self.horizontal)
 		self.vertical1.addLayout(self.save_form)
-		self.vertical1.addLayout(self.save_horizontal)
 		self.vertical1.addLayout(self.horizontal_run)
 		self.group.setLayout(self.vbox)
 		self.vertical.addWidget(self.group)
