@@ -5,7 +5,7 @@ from Req98_codes mycodes,
 where 
 trim(codes.code) = mycodes.code
 and codes.data_year = 2015
-and codes.data_month = 9;
+and codes.data_month = {4};
 
 create table Req98_Join as
 select distinct spec.specimen_number, spec.data_year, spec.data_month, spec.draw_date, 
