@@ -60,13 +60,14 @@ class Window(QtGui.QMainWindow):
             if name == '':
                 continue
             self.button = QtGui.QPushButton(name)
-            self.button.clicked.connect(partial(self.get_attrib_values, self.button.text()))
+            self.connect(self.button, QtCore.SIGNAL("clicked()"), partial(self.get_attrib_values, self.button.text()))
             self.button.setFixedHeight(40)
             self.button.setPalette(self.palette1)
             self.button.setFont(self.font1)
             self.grid.addWidget(self.button, *position)
 
-    def get_attrib_values(self, text):
+    @staticmethod
+    def get_attrib_values(text):
 
         xml_file = str(text) + '.xml'
         xml_instance.fetch_file_data(xml_file)

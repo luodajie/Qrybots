@@ -3,7 +3,7 @@ import pandas as pd
 from tabulate import tabulate
 import xml.etree.ElementTree as ET
 
-from query_dialog import Query_Window
+from query_dialog import QueryWindow
 
 
 class XmlFileParser(object):
@@ -20,6 +20,7 @@ class XmlFileParser(object):
         return filename_list
 
     def fetch_file_data(self, file_name):
+        print file_name
         fetched_file = os.path.join(self.path, file_name)
         tree = ET.parse(fetched_file)
         root = tree.getroot()
@@ -46,7 +47,7 @@ class XmlFileParser(object):
         for chi in root.iter('tables'):
             for t in root.iter('table'):
                 print t.get('name')
-        self.wind = Query_Window(fields=df, desc=description)
+        self.wind = QueryWindow(fields=df, desc=description)
         self.wind.show()
 
 # BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

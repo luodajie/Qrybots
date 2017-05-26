@@ -1,9 +1,10 @@
 from PyQt4 import QtGui, QtCore
+import csv
 
 
-class Query_Window(QtGui.QWidget):
+class QueryWindow(QtGui.QWidget):
     def __init__(self, parent=None, fields=None, desc=None):
-        super(Query_Window, self).__init__(parent)
+        super(QueryWindow, self).__init__(parent)
         self.fields = fields
         self.desc = desc
         self.text_fields = []
@@ -23,15 +24,15 @@ class Query_Window(QtGui.QWidget):
 
         for index, value in self.fields.iterrows():
             self.label = QtGui.QLabel(index)
-            if any(value == 'date'):
+            if any(i == 'date' for i in value):
                 exec ('self.textEdit' + index + ' = QtGui.QDateEdit(QtCore.QDate.currentDate().addDays(-1))')
                 exec ('self.textEdit' + index + '.setCalendarPopup(True)')
                 exec ('self.textEdit' + index + '.setFixedWidth(100)')
 
-            elif any(value == 'csv'):
+            elif any(i == 'csv' for i in value):
                 exec ('self.textEdit' + index + ' = QtGui.QHBoxLayout()')
-                exec ('self.csv_upload = QtGui.QLineEdit()')
-                exec ('self.csv_upload.setReadOnly(True)')
+                exec 'self.csv_upload = QtGui.QLineEdit()'
+                exec 'self.csv_upload.setReadOnly(True)'
                 exec ('self.textEdit' + index + '.addWidget(self.csv_upload)')
                 exec ('self.textEdit' + index + '.addWidget(self.upload)')
 
@@ -46,7 +47,6 @@ class Query_Window(QtGui.QWidget):
         self.save_to = QtGui.QPushButton("Browse", self)
         self.save_to.move(250, 150)
         self.save_to.setFixedWidth(100)
-        self.save_to.clicked.connect(self.download)
 
         self.save_horizontal.addWidget(self.save_to_text)
         self.save_horizontal.addWidget(self.save_to)
@@ -56,13 +56,12 @@ class Query_Window(QtGui.QWidget):
         self.run_button = QtGui.QPushButton("Run")
         self.run_button.setFixedWidth(200)
         self.run_button.setGeometry(50, 100, 100, 0)
+
         self.horizontal_run.addWidget(self.run_button)
         self.horizontal_run.setAlignment(QtCore.Qt.AlignJustify)
         self.vbox = QtGui.QVBoxLayout()
         self.vertical1 = QtGui.QVBoxLayout()
         self.vertical = QtGui.QVBoxLayout()
-        self.upload.clicked.connect(self.upload_codes)
-        self.run_button.clicked.connect(self.display)
         self.vbox.addLayout(self.form)
         self.vertical1.addLayout(self.save_form)
         self.vertical1.addLayout(self.horizontal_run)
@@ -71,17 +70,21 @@ class Query_Window(QtGui.QWidget):
         self.vertical.addLayout(self.vertical1)
         self.setLayout(self.vertical)
 
+        self.connect(self.save_to, QtCore.SIGNAL("clicked()"), self.download)
+        self.connect(self.upload, QtCore.SIGNAL("clicked()"), self.upload_codes)
+        self.connect(self.run_button, QtCore.SIGNAL("clicked()"), self.display)
+
     def display(self):
         lst = []
         for index, value in self.fields.iterrows():
-            if any(value == 'date'):
+            if any(i == 'date' for i in value):
                 exec ('self.date' + index + ' = self.textEdit' + index + '.date()')
                 lst.append(eval('self.date' + index + '.toPyDate()'))
 
-            elif any(value == 'csv'):
+            elif any(i == 'csv' for i in value):
                 print eval('self.csv_upload.text()')
 
-            elif any(value == 'int'):
+            elif any(i == 'int' for i in value):
                 if value.Id == '2':
                     try:
                         number = int(eval('self.textEdit' + index + '.text()'))
@@ -114,23 +117,32 @@ class Query_Window(QtGui.QWidget):
                 print d
 
     def upload_codes(self):
-        filename = QtGui.QFileDialog.getOpenFileName(self, 'Open File')
+        f = QtGui.QFileDialog()
+        filename = QtGui.QFileDialog.getOpenFileName(f, 'Open File')
         self.csv_upload.setText(filename)
 
         content = open(filename, 'r')
         print content.read()
 
     def download(self):
-        filename = QtGui.QFileDialog.getOpenFileName(self, 'Open File', '.')
-        self.save_to_text.setText(filename)
+        f = QtGui.QFileDialog()
+        filename = QtGui.QFileDialog.getSaveFileName(f, 'Save File')
+        self.save_to_text.setText(filename+'.csv')
 
-        print 'Path file :', filename
+        # --------------------This is Just a dummy Data-------------------------------
+        with open("YHOO.csv", 'rb') as f:
+            data = list(csv.reader(f))
+        # ------------------------------------------------------------------------------------
+
+        with open(filename+'.csv', "wb") as f:
+            writer = csv.writer(f)
+            writer.writerows(data)
 
 
 if __name__ == "__main__":
     import sys
 
     app = QtGui.QApplication(sys.argv)
-    widget = Query_Window()
+    widget = QueryWindow()
     widget.show()
     sys.exit(app.exec_())
