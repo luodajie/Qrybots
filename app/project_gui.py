@@ -11,13 +11,13 @@ class Window(QtGui.QMainWindow):
         self.setGeometry(300, 150, 500, 400)
         self.setWindowIcon(QtGui.QIcon("querybots.png"))
         self.setWindowTitle("QryBots")
-        # self.resize(500,400)
+
         self.widget = QtGui.QWidget()
 
         self.label = QtGui.QLabel("Please click the button below to run the Query:", self)
         self.hbox = QtGui.QHBoxLayout()
         self.hbox.addWidget(self.label)
-        # self.hbox.addWidget(self.dateEdit)
+
         self.blank = QtGui.QVBoxLayout()
         self.label1 = QtGui.QLabel("")
         self.label1.setFixedHeight(50)
@@ -31,7 +31,14 @@ class Window(QtGui.QMainWindow):
         self.font.setWeight(100)
         self.font.setFamily("Helvetica")
         self.palette = QtGui.QPalette()
-        # palette.setColor(QtGui.QPalette.Foreground, QtCore.Qt.white)
+
+        self.font1 = QtGui.QFont()
+        self.font1.setPointSize(13)
+        self.font1.setBold(True)
+        self.font1.setWeight(50)
+        self.font1.setFamily("Helvetica")
+        self.palette1 = QtGui.QPalette()
+
         self.label.setPalette(self.palette)
         self.label.setFont(self.font)
         self.label.setPalette(self.palette)
@@ -49,28 +56,23 @@ class Window(QtGui.QMainWindow):
         self.show()
 
     def dynamically_generated_buttons(self):
-        self.font1 = QtGui.QFont()
-        self.font1.setPointSize(13)
-        self.font1.setBold(True)
-        self.font1.setWeight(50)
-        self.font1.setFamily("Helvetica")
-        self.palette1 = QtGui.QPalette()
+
         positions = [(i, j) for i in range(len(self.filename_list)) for j in range(2)]
         for position, name in zip(positions, self.filename_list):
             if name == '':
                 continue
             self.button = QtGui.QPushButton(name)
-            self.connect(self.button, QtCore.SIGNAL("clicked()"), partial(self.get_attrib_values, self.button.text()))
+            self.connect(self.button, QtCore.SIGNAL("clicked()"), partial(get_attrib_values, self.button.text()))
             self.button.setFixedHeight(40)
             self.button.setPalette(self.palette1)
             self.button.setFont(self.font1)
             self.grid.addWidget(self.button, *position)
 
-    @staticmethod
-    def get_attrib_values(text):
 
-        xml_file = str(text) + '.xml'
-        xml_instance.fetch_file_data(xml_file)
+def get_attrib_values(text):
+
+    xml_file = str(text) + '.xml'
+    xml_instance.fetch_file_data(xml_file)
 
 
 if __name__ == "__main__":

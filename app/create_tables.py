@@ -2,7 +2,7 @@ import cx_Oracle
 import pandas as pd
 
 
-def check_existing_table(ord_accts_table_data, tests_table_data, user=None, passwrd=None, req_num=None):
+def check_existing_table(ord_accts_table_data, tests_table_data, user='bordee', passwrd='Eliezer!456', req_num=None):
     dsn = 'rtxa1-scan.labcorp.com:1521/lcadwp1.labcorp.com'
 
     con = cx_Oracle.connect(user='bordee', password='Eliezer!456', dsn=dsn)
@@ -88,13 +88,13 @@ def join_dd_table(cur, id):
             "and (a.data_year*100+a.data_month) = b.yrmo;".format(id)
 
 
-def PatCntByState_table(cur, id):
+def patcnt_by_state_table(cur, id):
     query = "create table Req98_by_state as " \
             "select report_state, count(distinct pseudo_lpid) as patient_count " \
             "from Req'{0}'_Join_DD group by report_state;".format(id)
 
 
-def PatCntByZip_table(cur, id):
+def patcnt_by_zip_table(cur, id):
     query = "create table Req98_by_zip as " \
             "select report_zip5, count(distinct pseudo_lpid) as " \
             "patient_count from Req'{0}'_Join_DD group by report_zip5;".format(id)

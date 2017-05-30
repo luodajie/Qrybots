@@ -1,5 +1,7 @@
 from PyQt4 import QtGui, QtCore
+from functools import partial
 import csv
+import os
 
 
 class QueryWindow(QtGui.QWidget):
@@ -117,26 +119,37 @@ class QueryWindow(QtGui.QWidget):
                 print d
 
     def upload_codes(self):
-        f = QtGui.QFileDialog()
-        filename = QtGui.QFileDialog.getOpenFileName(f, 'Open File')
-        self.csv_upload.setText(filename)
-
-        content = open(filename, 'r')
-        print content.read()
+        filename = QtGui.QFileDialog.getOpenFileName(self, 'Open File', "", 'Csv Files(*.csv);; Txt Files(*.txt)')
+        try:
+            content = open(filename, 'r')
+            self.csv_upload.setText(filename)
+            print content.read()
+        except IOError:
+            message = QtGui.QMessageBox(self)
+            message.setText("Oops ! You Forgot to insert ICD Codes File.")
+            message.setIcon(QtGui.QMessageBox.Critical)
+            message.exec_()
 
     def download(self):
-        f = QtGui.QFileDialog()
-        filename = QtGui.QFileDialog.getSaveFileName(f, 'Save File')
-        self.save_to_text.setText(filename+'.csv')
+        f = QtGui.QFileDialog(self)
+        # f.directory()
+        filename = QtGui.QFileDialog.getExistingDirectory(f)
 
+        # for i in ['Eliezer', 'Enosh', 'Elis']:
+        #     filename = QtGui.QFileDialog.getSaveFileName(self, 'Save File', str(i)+'.csv',
+        #                                                  'Csv files(*.csv);; All Files(*.*)')
+        #     print filename
+        #     # self.save_to_text.setText(filename)
+        #
         # --------------------This is Just a dummy Data-------------------------------
-        with open("YHOO.csv", 'rb') as f:
+        with open('YHOO.csv', 'rb') as f:
             data = list(csv.reader(f))
         # ------------------------------------------------------------------------------------
-
-        with open(filename+'.csv', "wb") as f:
-            writer = csv.writer(f)
-            writer.writerows(data)
+        #
+        for i in ['Eliezer', 'Dajie', 'Luis']:
+            with open(str(os.path.join(str(filename), i))+'.csv', "wb") as f:
+                writer = csv.writer(f)
+                writer.writerows(data)
 
 
 if __name__ == "__main__":
