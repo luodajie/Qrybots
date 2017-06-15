@@ -4,7 +4,9 @@ from tabulate import tabulate
 import xml.etree.ElementTree as ET
 
 from query_dialog import QueryWindow
+from database_file import check_existing_tables
 # from test import get_table_list
+
 
 class XmlFileParser(object):
     def __init__(self, path):
@@ -51,8 +53,9 @@ class XmlFileParser(object):
 
         print mytable_list
         # get_table_list(mytable_list)
-        self.wind = QueryWindow(fields=df, desc=description)
+        self.wind = QueryWindow(fields=df, desc=description, tablelist=mytable_list)
         self.wind.show()
+
 
 # BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # path = os.path.join(BASE_DIR, "config")

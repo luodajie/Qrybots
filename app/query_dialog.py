@@ -4,11 +4,14 @@ import csv
 import os
 
 from StyleSheets import group_box_style, run_button_style
+from paramSqlTotranSql import data_mapping
+from database_file import check_existing_tables
 
 
 class QueryWindow(QtGui.QWidget):
-    def __init__(self, parent=None, fields=None, desc=None):
+    def __init__(self, parent=None, fields=None, desc=None, tablelist=None):
         super(QueryWindow, self).__init__(parent)
+        self.tableList = tablelist
         self.fields = fields
         self.desc = desc
         self.text_fields = []
@@ -124,6 +127,8 @@ class QueryWindow(QtGui.QWidget):
 
     def display(self):
         lst = []
+        codes = []
+
         for index, value in self.fields.iterrows():
             if value.Type == 'date':
                 exec ('self.date' + index + ' = self.textEdit' + index + '.date()')
@@ -134,45 +139,45 @@ class QueryWindow(QtGui.QWidget):
             elif value.Type == 'csv':
                 try:
                     print eval('self.csv_upload.text()')
-                    codes_series = pd.Series(i.strip('\n') for i in self.line)
-                    # lst.append(codes_series)
+                    for i in self.line:
+                        codes.append(i.strip('\n'))
 
                 except:
                     pass
 
             elif value.Type == 'int':
-                    try:
-                        number = int(eval('self.textEdit' + index + '.text()'))
-                        if type(number) == int:
-                            lst.append(number)
+                try:
+                    number = int(eval('self.textEdit' + index + '.text()'))
+                    if type(number) == int:
+                        lst.append(number)
 
-                    except ValueError:
-                        QtGui.QMessageBox.about(self, 'Error',
-                                                'Insert only numbers for "{0}"'.format(str(index).upper()))
-                        lst.append("")
-                        # print eval('self.textEdit' + index + '.text()')
-                        #
-                        # if value.Id == '3':
-                        #     try:
-                        #         number = int(eval('self.textEdit' + index + '.text()'))
-                        #         if type(number) == int:
-                        #             print number
-                        #
-                        #     except ValueError:
-                        #         QtGui.QMessageBox.about(self, 'Error',
-                        #                                 'Insert only numbers for "{0}"'.format(str(index).upper()))
+                except ValueError:
+                    QtGui.QMessageBox.about(self, 'Error',
+                                            'Insert only numbers for "{0}"'.format(str(index).upper()))
+                    lst.append("")
+                    # print eval('self.textEdit' + index + '.text()')
+                    #
+                    # if value.Id == '3':
+                    #     try:
+                    #         number = int(eval('self.textEdit' + index + '.text()'))
+                    #         if type(number) == int:
+                    #             print number
+                    #
+                    #     except ValueError:
+                    #         QtGui.QMessageBox.about(self, 'Error',
+                    #                                 'Insert only numbers for "{0}"'.format(str(index).upper()))
 
             else:
-                x = eval('self.textEdit' + index + '.text()')
+                id = eval('self.textEdit' + index + '.text()')
 
-                lst.append(int(x))
+                lst.append(id)
 
-        print lst
-        # for date in lst:
-        #     if type(date):
-        #         print date
-                # else:
-                #     print d
+        data_mapping(lst)
+
+        for index, value in self.fields.iterrows():
+            if index == 'id':
+                id = eval('self.textEdit' + index + '.text()')
+                check_existing_tables(tables=self.tableList, codes=codes, id=id)
 
 
 if __name__ == "__main__":
