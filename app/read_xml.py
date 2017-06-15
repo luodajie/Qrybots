@@ -4,7 +4,7 @@ from tabulate import tabulate
 import xml.etree.ElementTree as ET
 
 from query_dialog import QueryWindow
-
+# from test import get_table_list
 
 class XmlFileParser(object):
     def __init__(self, path):
@@ -28,6 +28,7 @@ class XmlFileParser(object):
         field_name = []
         field_type = []
         field_ids = []
+        mytable_list = []
         # x = root.get('sql')
         for child in root.iter('input'):
             name = child.get('name')
@@ -38,7 +39,6 @@ class XmlFileParser(object):
                 print "-------------------------------"
                 print "|    Input Table: ", tab,    '|'
                 print "-------------------------------"
-
             field_name.append(name)
             field_type.append(type)
             field_ids.append(field_id)
@@ -46,7 +46,11 @@ class XmlFileParser(object):
         print tabulate(df, headers='keys', tablefmt='psql')
         for chi in root.iter('tables'):
             for t in root.iter('table'):
-                print t.get('name')
+                tables = t.get('name')
+                mytable_list.append(tables)
+
+        print mytable_list
+        # get_table_list(mytable_list)
         self.wind = QueryWindow(fields=df, desc=description)
         self.wind.show()
 

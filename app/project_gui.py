@@ -8,7 +8,7 @@ class Window(QtGui.QMainWindow):
     def __init__(self, filename=None, parent=None):
         super(Window, self).__init__(parent)
         self.filename_list = filename
-        self.setGeometry(300, 150, 500, 400)
+        self.setGeometry(300, 150, 800, 500)
         self.setWindowIcon(QtGui.QIcon("querybots.png"))
         self.setWindowTitle("QryBots")
 
@@ -62,6 +62,7 @@ class Window(QtGui.QMainWindow):
             if name == '':
                 continue
             self.button = QtGui.QPushButton(name)
+            self.button.setIcon(QtGui.QIcon("database.png"))
             self.connect(self.button, QtCore.SIGNAL("clicked()"), partial(get_attrib_values, self.button.text()))
             self.button.setFixedHeight(40)
             self.button.setPalette(self.palette1)
@@ -80,6 +81,7 @@ if __name__ == "__main__":
     import sys
 
     app = QtGui.QApplication(sys.argv)
+    app.setStyle(QtGui.QStyleFactory.create('Cleanlooks'))
     BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     path = os.path.join(BASE_DIR, "config")
     xml_instance = XmlFileParser(path)

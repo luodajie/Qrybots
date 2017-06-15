@@ -1,7 +1,9 @@
 from PyQt4 import QtGui, QtCore
-from functools import partial
+import pandas as pd
 import csv
 import os
+
+from StyleSheets import group_box_style, run_button_style
 
 
 class QueryWindow(QtGui.QWidget):
@@ -10,19 +12,20 @@ class QueryWindow(QtGui.QWidget):
         self.fields = fields
         self.desc = desc
         self.text_fields = []
-        self.resize(500, 300)
+
+        self.setFixedHeight(500)
+        self.setFixedWidth(800)
+        self.setWindowTitle("QryBots")
+        self.setWindowIcon(QtGui.QIcon("querybots.png"))
 
         self.group = QtGui.QGroupBox('Description: %s' % self.desc)
+        group_box_style(self.group)
 
         self.form = QtGui.QFormLayout()
         self.save_form = QtGui.QFormLayout()
         self.horizontal = QtGui.QHBoxLayout()
         self.save_horizontal = QtGui.QHBoxLayout()
         self.horizontal_run = QtGui.QHBoxLayout()
-
-        self.upload = QtGui.QPushButton("Upload Codes", self)
-        self.upload.move(250, 150)
-        self.upload.setFixedWidth(100)
 
         for index, value in self.fields.iterrows():
             self.label = QtGui.QLabel(index)
@@ -32,11 +35,16 @@ class QueryWindow(QtGui.QWidget):
                 exec ('self.textEdit' + index + '.setFixedWidth(100)')
 
             elif any(i == 'csv' for i in value):
+                self.upload = QtGui.QPushButton("Upload Codes", self)
+                self.upload.setIcon(QtGui.QIcon("upload.ico"))
+                self.upload.move(250, 150)
+                self.upload.setFixedWidth(100)
                 exec ('self.textEdit' + index + ' = QtGui.QHBoxLayout()')
                 exec 'self.csv_upload = QtGui.QLineEdit()'
                 exec 'self.csv_upload.setReadOnly(True)'
                 exec ('self.textEdit' + index + '.addWidget(self.csv_upload)')
                 exec ('self.textEdit' + index + '.addWidget(self.upload)')
+                self.connect(self.upload, QtCore.SIGNAL("clicked()"), self.upload_codes)
 
             else:
                 exec ('self.textEdit' + index + ' = QtGui.QLineEdit()')
@@ -47,6 +55,7 @@ class QueryWindow(QtGui.QWidget):
         self.save_to_text = QtGui.QLineEdit()
         self.save_to_text.setReadOnly(True)
         self.save_to = QtGui.QPushButton("Browse", self)
+        self.save_to.setIcon(QtGui.QIcon("browse.png"))
         self.save_to.move(250, 150)
         self.save_to.setFixedWidth(100)
 
@@ -58,6 +67,9 @@ class QueryWindow(QtGui.QWidget):
         self.run_button = QtGui.QPushButton("Run")
         self.run_button.setFixedWidth(200)
         self.run_button.setGeometry(50, 100, 100, 0)
+        self.run_button.setIcon(QtGui.QIcon("run.png"))
+        # self.run_button.setIcon(self.style().standardIcon(QtGui.QStyle.SP_MediaPlay))
+        run_button_style(self.run_button)
 
         self.horizontal_run.addWidget(self.run_button)
         self.horizontal_run.setAlignment(QtCore.Qt.AlignJustify)
@@ -73,57 +85,16 @@ class QueryWindow(QtGui.QWidget):
         self.setLayout(self.vertical)
 
         self.connect(self.save_to, QtCore.SIGNAL("clicked()"), self.download)
-        self.connect(self.upload, QtCore.SIGNAL("clicked()"), self.upload_codes)
         self.connect(self.run_button, QtCore.SIGNAL("clicked()"), self.display)
 
-    def display(self):
-        lst = []
-        for index, value in self.fields.iterrows():
-            if any(i == 'date' for i in value):
-                exec ('self.date' + index + ' = self.textEdit' + index + '.date()')
-                lst.append(eval('self.date' + index + '.toPyDate()'))
-
-            elif any(i == 'csv' for i in value):
-                print eval('self.csv_upload.text()')
-
-            elif any(i == 'int' for i in value):
-                if value.Id == '2':
-                    try:
-                        number = int(eval('self.textEdit' + index + '.text()'))
-                        if type(number) == int:
-                            print number
-
-                    except ValueError:
-                        QtGui.QMessageBox.about(self, 'Error',
-                                                'Insert only numbers for "{0}"'.format(str(index).upper()))
-
-                if value.Id == '3':
-                    try:
-                        number = int(eval('self.textEdit' + index + '.text()'))
-                        if type(number) == int:
-                            print number
-
-                    except ValueError:
-                        QtGui.QMessageBox.about(self, 'Error',
-                                                'Insert only numbers for "{0}"'.format(str(index).upper()))
-
-            else:
-                x = eval('self.textEdit' + index + '.text()')
-
-                print "id is ", x
-
-        for d in lst:
-            if not type(d):
-                raise
-            else:
-                print d
-
     def upload_codes(self):
-        filename = QtGui.QFileDialog.getOpenFileName(self, 'Open File', "", 'Csv Files(*.csv);; Txt Files(*.txt)')
+        filename = QtGui.QFileDialog.getOpenFileName(self, 'Open File', "", 'All Files(*.*);; Csv Files(*.csv);; '
+                                                                            'Txt Files(*.txt)')
         try:
             content = open(filename, 'r')
             self.csv_upload.setText(filename)
-            print content.read()
+            self.line = content.readlines()[1:]
+            content.close()
         except IOError:
             message = QtGui.QMessageBox(self)
             message.setText("Oops ! You Forgot to insert ICD Codes File.")
@@ -147,9 +118,61 @@ class QueryWindow(QtGui.QWidget):
         # ------------------------------------------------------------------------------------
         #
         for i in ['Eliezer', 'Dajie', 'Luis']:
-            with open(str(os.path.join(str(filename), i))+'.csv', "wb") as f:
+            with open(str(os.path.join(str(filename), i)) + '.csv', "wb") as f:
                 writer = csv.writer(f)
                 writer.writerows(data)
+
+    def display(self):
+        lst = []
+        for index, value in self.fields.iterrows():
+            if value.Type == 'date':
+                exec ('self.date' + index + ' = self.textEdit' + index + '.date()')
+                # lst.append(eval('self.date' + index + '.toPyDate()'))
+                mydate = eval('self.date' + index + '.toPyDate()')
+                lst.append(str(mydate))
+
+            elif value.Type == 'csv':
+                try:
+                    print eval('self.csv_upload.text()')
+                    codes_series = pd.Series(i.strip('\n') for i in self.line)
+                    # lst.append(codes_series)
+
+                except:
+                    pass
+
+            elif value.Type == 'int':
+                    try:
+                        number = int(eval('self.textEdit' + index + '.text()'))
+                        if type(number) == int:
+                            lst.append(number)
+
+                    except ValueError:
+                        QtGui.QMessageBox.about(self, 'Error',
+                                                'Insert only numbers for "{0}"'.format(str(index).upper()))
+                        lst.append("")
+                        # print eval('self.textEdit' + index + '.text()')
+                        #
+                        # if value.Id == '3':
+                        #     try:
+                        #         number = int(eval('self.textEdit' + index + '.text()'))
+                        #         if type(number) == int:
+                        #             print number
+                        #
+                        #     except ValueError:
+                        #         QtGui.QMessageBox.about(self, 'Error',
+                        #                                 'Insert only numbers for "{0}"'.format(str(index).upper()))
+
+            else:
+                x = eval('self.textEdit' + index + '.text()')
+
+                lst.append(int(x))
+
+        print lst
+        # for date in lst:
+        #     if type(date):
+        #         print date
+                # else:
+                #     print d
 
 
 if __name__ == "__main__":
