@@ -9,11 +9,12 @@ from database_file import check_existing_tables
 
 
 class QueryWindow(QtGui.QWidget):
-    def __init__(self, parent=None, fields=None, desc=None, tablelist=None):
+    def __init__(self, parent=None, fields=None, desc=None, tablelist=None, sqlfile=None):
         super(QueryWindow, self).__init__(parent)
         self.tableList = tablelist
         self.fields = fields
         self.desc = desc
+        self.sqlfile = sqlfile
         self.text_fields = []
 
         self.setFixedHeight(500)
@@ -70,7 +71,7 @@ class QueryWindow(QtGui.QWidget):
         self.run_button = QtGui.QPushButton("Run")
         self.run_button.setFixedWidth(200)
         self.run_button.setGeometry(50, 100, 100, 0)
-        self.run_button.setIcon(QtGui.QIcon("run.png"))
+        self.run_button.setIcon(QtGui.QIcon("run13.png"))
         # self.run_button.setIcon(self.style().standardIcon(QtGui.QStyle.SP_MediaPlay))
         run_button_style(self.run_button)
 
@@ -172,7 +173,7 @@ class QueryWindow(QtGui.QWidget):
 
                 lst.append(id)
 
-        data_mapping(lst)
+        data_mapping(lst=lst, sqlfile=self.sqlfile)
 
         for index, value in self.fields.iterrows():
             if index == 'id':

@@ -26,6 +26,7 @@ def run_button_style(button=None):
                                             QPushButton:open { /* when the button has its menu open */
                                 background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
                                                                   stop: 0 #dadbde, stop: 1 #f6f7fa);
+                                border: #0059b3;                                                                  
                             }
                             
                             QPushButton::menu-indicator {
@@ -34,8 +35,11 @@ def run_button_style(button=None):
                                 subcontrol-position: bottom right;
                             }
                             
-                            QPushButton::menu-indicator:pressed, QPushButton::menu-indicator:open {
+                            QPushButton::pressed {
+                                background-color: #bfbfbf;
                                 position: relative;
-                                top: 2px; left: 2px; /* shift the arrow by 2 px */
+                                top: 2px; left: 15px; /* shift the arrow by 2 px */
+                                border:1px solid #7575a3;
+                               
                             }
     ''')

@@ -5,22 +5,25 @@ BASE_DIR = os.path.dirname(os.path.abspath(''))
 file_directory = os.path.join(BASE_DIR, 'config')
 
 
-def data_mapping(lst):
+def data_mapping(lst, sqlfile):
     # taking dynamic list and creating dictionary from it, so that we can use it to substitute args in prameterized sql.
     data = {}
-    # lst = ["12", "2007", '13', '2015-01-01', '2016-08-01']
-    for i in range(5):
-        data[i + 1] = lst[i]
-    print data
+    try:
+        for i in range(len(lst)):
+            data[i + 1] = lst[i]
+        print data
 
-    read_parameterized_sql(data)
+        read_parameterized_sql(data, sqlfile)
+
+    except:
+        pass
 
 
-def read_parameterized_sql(data):
-    actual_path = os.path.join(file_directory, 'parameterized.sql')
+def read_parameterized_sql(data, sqlfile):
+    actual_path = os.path.join(file_directory, sqlfile)
     collect_query = []
 
-    with open(actual_path, 'rb') as param_sql:
+    with open(actual_path, 'r') as param_sql:
         for statements in (param_sql.read().split(';')):
             collect_query.append(statements)
 
@@ -36,14 +39,11 @@ def read_parameterized_sql(data):
 def write_translated_sql(translated_query):
     actual_path = os.path.join(file_directory, 'Translated_SQL.sql')
     with open(actual_path, 'w') as trans_sql:
-        query = ';'.join(translated_query)
-        trans_sql.write(query.rstrip('\n'))
+        for i in translated_query:
+            lines = "{};".format(i)
+            trans_sql.write(lines)
+    # with open(actual_path, 'w') as trans_sql:
+    #     query = ';'.join(translated_query)
+    #     trans_sql.write(query.rstrip('\n'))
         print "File Written"
 
-
-
-
-# use it while reading the file
-# with open(os.path.join(file_directory, 'mytranslated.sql'), 'r') as q:
-#     for line in q:
-#         print line.strip()

@@ -1,40 +1,47 @@
 import cx_Oracle
-
+import os
 from pprint import pprint
 
+# global variable for oracle
 user = 'bordee'
 passwrd = 'stunner1234'
 dsn = 'rtxa1-scan.labcorp.com:1521/lcadwp1.labcorp.com'
 
-
-# id = 12
+# global variable for file path
+BASE_DIR = os.path.dirname(os.path.abspath(''))
+file_directory = os.path.join(BASE_DIR, 'config')
 
 
 def check_existing_tables(tables=None, codes=None, id=None):
-    print tables
+    print "Tables are: ", tables
     con = cx_Oracle.connect('bordee/stunner1234@rtxa1-scan.labcorp.com:1521/lcadwp1.labcorp.com')
     cur = con.cursor()
 
-    for tab in tables:
+    for table_name, value in tables.iterrows():
         try:
-            tab = str(tab).format(id)
+            tab = str(table_name).format(id)
         except:
-            tab = str(tab).format('', id)
-        stmt = "SELECT table_name FROM user_tables WHERE table_name = '" + tab.upper() + "'"
-        cur.execute(stmt)
-        checker = (bool(cur.fetchone()))
-        # pprint(checker)
-
-        if not checker:
-            create_icd_table(table_name=tab, cursor=cur, con=con, codes=codes)
-
-        else:
-            stmt = 'Drop Table {}'.format(tab)
+            tab = str(table_name).format('', id)
+        try:
+            stmt = "SELECT table_name FROM user_tables WHERE table_name = '" + tab.upper() + "'"
             cur.execute(stmt)
-            print 'Table Dropped'
+            checker = (bool(cur.fetchone()))
+            # pprint(checker)
 
+            if not checker:
+                create_icd_table(table_name=tab, cursor=cur, con=con, codes=codes)
+
+            else:
+                stmt = 'Drop Table {}'.format(tab)
+                cur.execute(stmt)
+                print 'Table Dropped'
+
+                create_rest_of_the_tables(con=con, cursor=cur)
+
+        except:
+            pass
             # create_table(tab, cur)
-
+    drop_unused_tables(tables=tables, cursor=cur, id=id)
     print repr(con.version)
     con.close()
 
@@ -45,7 +52,7 @@ def create_icd_table(table_name=None, cursor=None, con=None, codes=None):
         # creating ICD codes table
         stmt = 'CREATE TABLE {} (code VARCHAR(500))'.format(table_name)
         cursor.execute(stmt)
-        print "Table is created"
+        print "ICD Table is created"
 
         # dummy list of ICD codes
         # mylst = [i for i in codes]
@@ -56,19 +63,35 @@ def create_icd_table(table_name=None, cursor=None, con=None, codes=None):
         cursor.executemany(stmt, [(str(v),) for v in codes])
         con.commit()  # commit insertion into database
         print "Data Inserted in ICD table"
-        # create_rest_of_the_tables(cursor)
+        create_rest_of_the_tables(con=con, cursor=cursor)
 
 
-def create_rest_of_the_tables(cursor):
-    stmt = "create table Req{0}_Specimen as select distinct specimen_number from Req{0}_codes mycodes, " \
-           "proddb2.dd_trrmr65_lhcs_codes codes " \
-           "where " \
-           "trim(codes.code) = mycodes.code " \
-           "and codes.data_year = {3} " \
-           "and codes.data_month = {4}".format(id, "12", "13", '2007', '1')
-    cursor.execute(stmt)
-    print "Table Created"
+def create_rest_of_the_tables(con=None, cursor=None):
+    # use it while reading the file
+    with open(os.path.join(file_directory, 'Translated_SQL.sql'), 'r') as q:
+        split_queries = [qry for qry in q.read().split(';')]
+        for qry in split_queries:
+            if qry == " ":
+                pass
+            else:
+                stmt = """{}""".format(qry.strip('\n'))
+                print stmt
+                if stmt == '':
+                    pass
+                else:
 
-# lst = ['Req{0}_Specimen', 'Req{0}_codes']
-# lst = ['Req{0}_by_state', 'Req{0}_by_zip', 'Req{0}_codes', 'Req{0}_Join', 'Req{0}_Join_DD', 'Req{0}_Specimen']
-# check_existing_tables(lst)
+                    cursor.execute(stmt)
+                    con.commit()
+                    print "Other Tables Created"
+
+
+def drop_unused_tables(tables=None, cursor=None, id=id):
+    for table_name, value in tables.iterrows():
+        try:
+            tab = str(table_name).format(id)
+        except:
+            tab = str(table_name).format('', id)
+        if value.keep == 'False':
+            stmt = 'Drop Table {}'.format(tab)
+            cursor.execute(stmt)
+            print table_name, 'Table Dropped because "keep" is False for the table in xml file'
