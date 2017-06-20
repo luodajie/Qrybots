@@ -18,15 +18,15 @@ where
 myspec.specimen_number = spec.specimen_number
 and spec.data_year = {2}
 and spec.data_month = {3}
-and spec.draw_date <= TO_DATE('{4}','YYYY-MM-DD') 
-and spec.draw_date >= TO_DATE('{5}','YYYY-MM-DD')
+and spec.draw_date <= TO_DATE('{5}','YYYY-MM-DD')
+and spec.draw_date >= TO_DATE('{4}','YYYY-MM-DD')
 and spec.ordering_acct_num = cust.account_number;
 
-create table Req{1}_Join_DD as 
-select a.* 
-from Req{1}_Join a, 
+create table Req{1}_Join_DD as
+select a.*
+from Req{1}_Join a,
     (select specimen_number, max(data_year*100+data_month) as yrmo from Req{1}_Join group by specimen_number) b
-where a.specimen_number=b.specimen_number 
+where a.specimen_number=b.specimen_number
 and (a.data_year*100+a.data_month) = b.yrmo;
 
 create table Req{1}_by_state as
