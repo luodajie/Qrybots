@@ -1,20 +1,19 @@
 import cx_Oracle
+import csv
 import os
-from pprint import pprint
+
 
 # global variable for oracle
-user = 'bordee'
-passwrd = 'stunner1234'
-dsn = 'rtxa1-scan.labcorp.com:1521/lcadwp1.labcorp.com'
+
 
 # global variable for file path
 BASE_DIR = os.path.dirname(os.path.abspath(''))
 file_directory = os.path.join(BASE_DIR, 'config')
 
 
-def check_existing_tables(tables=None, codes=None, id=None):
+def check_existing_tables(tables=None, codes=None, id=None, file_download_location=None):
     print "Tables are: ", tables
-    con = cx_Oracle.connect('bordee/stunner1234@rtxa1-scan.labcorp.com:1521/lcadwp1.labcorp.com')
+    con = cx_Oracle.connect('username/password@proxyserver')
     cur = con.cursor()
 
     for table_name, value in tables.iterrows():
@@ -40,9 +39,11 @@ def check_existing_tables(tables=None, codes=None, id=None):
 
         except:
             pass
-            # create_table(tab, cur)
+
+    export_tables_to_csv(tables=tables, cursor=cur, id=id, file_download_location=file_download_location)
     drop_unused_tables(tables=tables, cursor=cur, id=id)
     print repr(con.version)
+    cur.close()
     con.close()
 
 
@@ -53,9 +54,6 @@ def create_icd_table(table_name=None, cursor=None, con=None, codes=None):
         stmt = 'CREATE TABLE {} (code VARCHAR(500))'.format(table_name)
         cursor.execute(stmt)
         print "ICD Table is created"
-
-        # dummy list of ICD codes
-        # mylst = [i for i in codes]
 
         # inserting data into ICD codes table
         stmt = "INSERT INTO {} (code) VALUES (:1)".format(table_name)
@@ -68,7 +66,7 @@ def create_icd_table(table_name=None, cursor=None, con=None, codes=None):
 
 def create_rest_of_the_tables(con=None, cursor=None):
     # use it while reading the file
-    with open(os.path.join(file_directory, 'Translated_SQL.sql'), 'r') as q:
+    with open(os.path.join(file_directory, 'Translated_SQL.sql'), 'rb') as q:
         split_queries = [qry for qry in q.read().split(';')]
         for qry in split_queries:
             if qry == " ":
@@ -85,6 +83,34 @@ def create_rest_of_the_tables(con=None, cursor=None):
                     print "Other Tables Created"
 
 
+def export_tables_to_csv(tables=None, cursor=None, id=None, file_download_location=None):
+    # try:
+    for table_name, value in tables.iterrows():
+        try:
+            tab = str(table_name).format(id)
+        except:
+            tab = str(table_name).format('', id)
+        if value.export == 'False':
+            pass
+        else:
+            stmt = 'SELECT * from {}'.format(tab)
+            cursor.execute(stmt)
+            columns = [i[0] for i in cursor.description]
+            download_data = cursor.fetchall()
+
+            file_location = str(os.path.join(str(file_download_location), tab)) + '.csv'
+            with open(file_location, "wb") as outputfile:
+                writer = csv.writer(outputfile, dialect='excel')
+                writer.writerow(columns)
+                for row in download_data:
+                    writer.writerow(row)
+
+            print tab, 'Table are exported because "export" is True for the table in xml file'
+
+            # except:
+            #     pass
+
+
 def drop_unused_tables(tables=None, cursor=None, id=id):
     for table_name, value in tables.iterrows():
         try:
@@ -94,4 +120,4 @@ def drop_unused_tables(tables=None, cursor=None, id=id):
         if value.keep == 'False':
             stmt = 'Drop Table {}'.format(tab)
             cursor.execute(stmt)
-            print table_name, 'Table Dropped because "keep" is False for the table in xml file'
+            print tab, 'Table Dropped because "keep" is False for the table in xml file'

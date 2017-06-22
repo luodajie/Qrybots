@@ -4,10 +4,6 @@ from tabulate import tabulate
 import xml.etree.ElementTree as ET
 
 from query_dialog import QueryWindow
-from database_file import check_existing_tables
-
-
-# from test import get_table_list
 
 
 class XmlFileParser(object):

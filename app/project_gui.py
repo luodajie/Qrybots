@@ -1,5 +1,5 @@
-from PyQt4 import QtGui, QtCore
 from functools import partial
+from PyQt4 import QtGui, QtCore
 
 from read_xml import XmlFileParser
 

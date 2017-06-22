@@ -1,11 +1,9 @@
 from PyQt4 import QtGui, QtCore
-import pandas as pd
-import csv
-import os
 
-from StyleSheets import group_box_style, run_button_style
-from paramSqlTotranSql import data_mapping
 from database_file import check_existing_tables
+from paramSqlTotranSql import data_mapping
+from ProgressBarGui import ProgressDialog
+from StyleSheets import group_box_style, run_button_style
 
 
 class QueryWindow(QtGui.QWidget):
@@ -89,7 +87,7 @@ class QueryWindow(QtGui.QWidget):
         self.setLayout(self.vertical)
 
         self.connect(self.save_to, QtCore.SIGNAL("clicked()"), self.download)
-        self.connect(self.run_button, QtCore.SIGNAL("clicked()"), self.display)
+        self.connect(self.run_button, QtCore.SIGNAL("clicked()"), self.show_progress)
 
     def upload_codes(self):
         filename = QtGui.QFileDialog.getOpenFileName(self, 'Open File', "", 'All Files(*.*);; Csv Files(*.csv);; '
@@ -106,25 +104,8 @@ class QueryWindow(QtGui.QWidget):
             message.exec_()
 
     def download(self):
-        f = QtGui.QFileDialog(self)
-        # f.directory()
-        filename = QtGui.QFileDialog.getExistingDirectory(f)
-
-        # for i in ['Eliezer', 'Enosh', 'Elis']:
-        #     filename = QtGui.QFileDialog.getSaveFileName(self, 'Save File', str(i)+'.csv',
-        #                                                  'Csv files(*.csv);; All Files(*.*)')
-        #     print filename
-        #     # self.save_to_text.setText(filename)
-        #
-        # --------------------This is Just a dummy Data-------------------------------
-        with open('YHOO.csv', 'rb') as f:
-            data = list(csv.reader(f))
-        # ------------------------------------------------------------------------------------
-        #
-        for i in ['Eliezer', 'Dajie', 'Luis']:
-            with open(str(os.path.join(str(filename), i)) + '.csv', "wb") as f:
-                writer = csv.writer(f)
-                writer.writerows(data)
+        self.filename = QtGui.QFileDialog.getExistingDirectory(parent=None, directory="/home")
+        self.save_to_text.setText(self.filename)
 
     def display(self):
         lst = []
@@ -133,7 +114,6 @@ class QueryWindow(QtGui.QWidget):
         for index, value in self.fields.iterrows():
             if value.Type == 'date':
                 exec ('self.date' + index + ' = self.textEdit' + index + '.date()')
-                # lst.append(eval('self.date' + index + '.toPyDate()'))
                 mydate = eval('self.date' + index + '.toPyDate()')
                 lst.append(str(mydate))
 
@@ -156,17 +136,6 @@ class QueryWindow(QtGui.QWidget):
                     QtGui.QMessageBox.about(self, 'Error',
                                             'Insert only numbers for "{0}"'.format(str(index).upper()))
                     lst.append("")
-                    # print eval('self.textEdit' + index + '.text()')
-                    #
-                    # if value.Id == '3':
-                    #     try:
-                    #         number = int(eval('self.textEdit' + index + '.text()'))
-                    #         if type(number) == int:
-                    #             print number
-                    #
-                    #     except ValueError:
-                    #         QtGui.QMessageBox.about(self, 'Error',
-                    #                                 'Insert only numbers for "{0}"'.format(str(index).upper()))
 
             else:
                 id = eval('self.textEdit' + index + '.text()')
@@ -178,8 +147,14 @@ class QueryWindow(QtGui.QWidget):
         for index, value in self.fields.iterrows():
             if index == 'id':
                 id = eval('self.textEdit' + index + '.text()')
-                check_existing_tables(tables=self.tableList, codes=codes, id=id)
+                check_existing_tables(tables=self.tableList, codes=codes,
+                                                 id=id, file_download_location=self.filename)
+        return 1
 
+    def show_progress(self):
+        self.progress = ProgressDialog(parent=self, mainWindow=self, file_location=self.filename)
+        self.progress.resize(250, 50)
+        self.progress.exec_()
 
 if __name__ == "__main__":
     import sys

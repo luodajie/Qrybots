@@ -23,7 +23,7 @@ def read_parameterized_sql(data, sqlfile):
     actual_path = os.path.join(file_directory, sqlfile)
     collect_query = []
 
-    with open(actual_path, 'r') as param_sql:
+    with open(actual_path, 'rb') as param_sql:
         for statements in (param_sql.read().split(';')):
             collect_query.append(statements)
 
@@ -38,7 +38,7 @@ def read_parameterized_sql(data, sqlfile):
 
 def write_translated_sql(translated_query):
     actual_path = os.path.join(file_directory, 'Translated_SQL.sql')
-    with open(actual_path, 'w') as trans_sql:
+    with open(actual_path, 'wb') as trans_sql:
         for i in translated_query:
             lines = "{};".format(i)
             trans_sql.write(lines)
