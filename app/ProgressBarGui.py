@@ -2,7 +2,7 @@ from PyQt4 import QtGui, QtCore
 
 
 class ProgressDialog(QtGui.QDialog):
-    def __init__(self, parent=None, mainWindow=None, file_location=None):
+    def __init__(self, parent=None, querydialog=None, file_location=None):
         super(ProgressDialog, self).__init__(parent)
 
         self.setWindowTitle("Please wait...")
@@ -15,7 +15,7 @@ class ProgressDialog(QtGui.QDialog):
         layout.addWidget(self.progressBar)
         self.setLayout(layout)
 
-        self.myLongTask = TaskThread(mainWindow)
+        self.myLongTask = TaskThread(querydialog)
         self.myLongTask.start()
         self.myLongTask.taskFinishedSignal.connect(self.onFinished)
         self.myLongTask.taskErrorSignal.connect(self.onError)

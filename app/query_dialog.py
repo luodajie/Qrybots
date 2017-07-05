@@ -148,13 +148,14 @@ class QueryWindow(QtGui.QWidget):
             if index == 'id':
                 id = eval('self.textEdit' + index + '.text()')
                 check_existing_tables(tables=self.tableList, codes=codes,
-                                                 id=id, file_download_location=self.filename)
+                                      id=id, file_download_location=self.filename)
         return 1
 
     def show_progress(self):
-        self.progress = ProgressDialog(parent=self, mainWindow=self, file_location=self.filename)
+        self.progress = ProgressDialog(parent=self, querydialog=self, file_location=self.filename)
         self.progress.resize(250, 50)
         self.progress.exec_()
+
 
 if __name__ == "__main__":
     import sys
