@@ -28,7 +28,8 @@ class XmlFileParser(object):
         field_name = []
         field_type = []
         field_ids = []
-        # x = root.get('sql')
+        mytable_list = {}
+        sql_file = root.get('sql')
         for child in root.iter('input'):
             name = child.get('name')
             type = child.get('type')
@@ -36,22 +37,27 @@ class XmlFileParser(object):
             tab = child.get('table')
             if tab:
                 print "-------------------------------"
-                print "|    Input Table: ", tab,    '|'
+                print "|    Input Table: ", tab, '|'
                 print "-------------------------------"
-
             field_name.append(name)
             field_type.append(type)
             field_ids.append(field_id)
         df = pd.DataFrame({'Type': field_type, 'Id': field_ids}, index=field_name)
         print tabulate(df, headers='keys', tablefmt='psql')
-        for chi in root.iter('tables'):
+        for tabs in root.iter('tables'):
             for t in root.iter('table'):
-                print t.get('name')
-        self.wind = QueryWindow(fields=df, desc=description)
-        self.wind.show()
+                tables = t.get('name')
+                export = t.get('export')
+                keep = t.get('keep')
+                if export is None:
+                    export = 'False'
+                if keep is None:
+                    keep = 'False'
+                mytable_list[tables] = export, keep
 
-# BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-# path = os.path.join(BASE_DIR, "config")
-# xml_instance = Xml_File_Parser(path)
-# xml_instance.get_filename()
-# xml_instance.fetch_file_data()
+        df1 = pd.DataFrame(mytable_list)
+        transposed = pd.DataFrame.transpose(df1)
+        transposed.columns = ['export', 'keep']
+        print transposed
+        self.wind = QueryWindow(fields=df, desc=description, tablelist=transposed, sqlfile=sql_file)
+        self.wind.show()

@@ -1,26 +1,33 @@
 from PyQt4 import QtGui, QtCore
-import csv
+
+from database_file import check_existing_tables
+from paramSqlTotranSql import data_mapping
+from ProgressBarGui import ProgressDialog
+from StyleSheets import group_box_style, run_button_style
 
 
 class QueryWindow(QtGui.QWidget):
-    def __init__(self, parent=None, fields=None, desc=None):
+    def __init__(self, parent=None, fields=None, desc=None, tablelist=None, sqlfile=None):
         super(QueryWindow, self).__init__(parent)
+        self.tableList = tablelist
         self.fields = fields
         self.desc = desc
+        self.sqlfile = sqlfile
         self.text_fields = []
-        self.resize(500, 300)
+
+        self.setFixedHeight(500)
+        self.setFixedWidth(800)
+        self.setWindowTitle("QryBots")
+        self.setWindowIcon(QtGui.QIcon("querybots.png"))
 
         self.group = QtGui.QGroupBox('Description: %s' % self.desc)
+        group_box_style(self.group)
 
         self.form = QtGui.QFormLayout()
         self.save_form = QtGui.QFormLayout()
         self.horizontal = QtGui.QHBoxLayout()
         self.save_horizontal = QtGui.QHBoxLayout()
         self.horizontal_run = QtGui.QHBoxLayout()
-
-        self.upload = QtGui.QPushButton("Upload Codes", self)
-        self.upload.move(250, 150)
-        self.upload.setFixedWidth(100)
 
         for index, value in self.fields.iterrows():
             self.label = QtGui.QLabel(index)
@@ -30,11 +37,16 @@ class QueryWindow(QtGui.QWidget):
                 exec ('self.textEdit' + index + '.setFixedWidth(100)')
 
             elif any(i == 'csv' for i in value):
+                self.upload = QtGui.QPushButton("Upload Codes", self)
+                self.upload.setIcon(QtGui.QIcon("upload.ico"))
+                self.upload.move(250, 150)
+                self.upload.setFixedWidth(100)
                 exec ('self.textEdit' + index + ' = QtGui.QHBoxLayout()')
                 exec 'self.csv_upload = QtGui.QLineEdit()'
                 exec 'self.csv_upload.setReadOnly(True)'
                 exec ('self.textEdit' + index + '.addWidget(self.csv_upload)')
                 exec ('self.textEdit' + index + '.addWidget(self.upload)')
+                self.connect(self.upload, QtCore.SIGNAL("clicked()"), self.upload_codes)
 
             else:
                 exec ('self.textEdit' + index + ' = QtGui.QLineEdit()')
@@ -45,6 +57,7 @@ class QueryWindow(QtGui.QWidget):
         self.save_to_text = QtGui.QLineEdit()
         self.save_to_text.setReadOnly(True)
         self.save_to = QtGui.QPushButton("Browse", self)
+        self.save_to.setIcon(QtGui.QIcon("browse.png"))
         self.save_to.move(250, 150)
         self.save_to.setFixedWidth(100)
 
@@ -56,6 +69,9 @@ class QueryWindow(QtGui.QWidget):
         self.run_button = QtGui.QPushButton("Run")
         self.run_button.setFixedWidth(200)
         self.run_button.setGeometry(50, 100, 100, 0)
+        self.run_button.setIcon(QtGui.QIcon("run13.png"))
+        # self.run_button.setIcon(self.style().standardIcon(QtGui.QStyle.SP_MediaPlay))
+        run_button_style(self.run_button)
 
         self.horizontal_run.addWidget(self.run_button)
         self.horizontal_run.setAlignment(QtCore.Qt.AlignJustify)
@@ -71,72 +87,74 @@ class QueryWindow(QtGui.QWidget):
         self.setLayout(self.vertical)
 
         self.connect(self.save_to, QtCore.SIGNAL("clicked()"), self.download)
-        self.connect(self.upload, QtCore.SIGNAL("clicked()"), self.upload_codes)
-        self.connect(self.run_button, QtCore.SIGNAL("clicked()"), self.display)
+        self.connect(self.run_button, QtCore.SIGNAL("clicked()"), self.show_progress)
+
+    def upload_codes(self):
+        filename = QtGui.QFileDialog.getOpenFileName(self, 'Open File', "", 'All Files(*.*);; Csv Files(*.csv);; '
+                                                                            'Txt Files(*.txt)')
+        try:
+            content = open(filename, 'r')
+            self.csv_upload.setText(filename)
+            self.line = content.readlines()[1:]
+            content.close()
+        except IOError:
+            message = QtGui.QMessageBox(self)
+            message.setText("Oops ! You Forgot to insert ICD Codes File.")
+            message.setIcon(QtGui.QMessageBox.Critical)
+            message.exec_()
+
+    def download(self):
+        self.filename = QtGui.QFileDialog.getExistingDirectory(parent=None, directory="/home")
+        self.save_to_text.setText(self.filename)
 
     def display(self):
         lst = []
+        codes = []
+
         for index, value in self.fields.iterrows():
-            if any(i == 'date' for i in value):
+            if value.Type == 'date':
                 exec ('self.date' + index + ' = self.textEdit' + index + '.date()')
-                lst.append(eval('self.date' + index + '.toPyDate()'))
+                mydate = eval('self.date' + index + '.toPyDate()')
+                lst.append(str(mydate))
 
-            elif any(i == 'csv' for i in value):
-                print eval('self.csv_upload.text()')
+            elif value.Type == 'csv':
+                try:
+                    print eval('self.csv_upload.text()')
+                    for i in self.line:
+                        codes.append(i.strip('\n'))
 
-            elif any(i == 'int' for i in value):
-                if value.Id == '2':
-                    try:
-                        number = int(eval('self.textEdit' + index + '.text()'))
-                        if type(number) == int:
-                            print number
+                except:
+                    pass
 
-                    except ValueError:
-                        QtGui.QMessageBox.about(self, 'Error',
-                                                'Insert only numbers for "{0}"'.format(str(index).upper()))
+            elif value.Type == 'int':
+                try:
+                    number = int(eval('self.textEdit' + index + '.text()'))
+                    if type(number) == int:
+                        lst.append(number)
 
-                if value.Id == '3':
-                    try:
-                        number = int(eval('self.textEdit' + index + '.text()'))
-                        if type(number) == int:
-                            print number
-
-                    except ValueError:
-                        QtGui.QMessageBox.about(self, 'Error',
-                                                'Insert only numbers for "{0}"'.format(str(index).upper()))
+                except ValueError:
+                    QtGui.QMessageBox.about(self, 'Error',
+                                            'Insert only numbers for "{0}"'.format(str(index).upper()))
+                    lst.append("")
 
             else:
-                x = eval('self.textEdit' + index + '.text()')
+                id = eval('self.textEdit' + index + '.text()')
 
-                print "id is ", x
+                lst.append(id)
 
-        for d in lst:
-            if not type(d):
-                raise
-            else:
-                print d
+        data_mapping(lst=lst, sqlfile=self.sqlfile)
 
-    def upload_codes(self):
-        f = QtGui.QFileDialog()
-        filename = QtGui.QFileDialog.getOpenFileName(f, 'Open File')
-        self.csv_upload.setText(filename)
+        for index, value in self.fields.iterrows():
+            if index == 'id':
+                id = eval('self.textEdit' + index + '.text()')
+                check_existing_tables(tables=self.tableList, codes=codes,
+                                      id=id, file_download_location=self.filename)
+        return 1
 
-        content = open(filename, 'r')
-        print content.read()
-
-    def download(self):
-        f = QtGui.QFileDialog()
-        filename = QtGui.QFileDialog.getSaveFileName(f, 'Save File')
-        self.save_to_text.setText(filename+'.csv')
-
-        # --------------------This is Just a dummy Data-------------------------------
-        with open("YHOO.csv", 'rb') as f:
-            data = list(csv.reader(f))
-        # ------------------------------------------------------------------------------------
-
-        with open(filename+'.csv', "wb") as f:
-            writer = csv.writer(f)
-            writer.writerows(data)
+    def show_progress(self):
+        self.progress = ProgressDialog(parent=self, querydialog=self, file_location=self.filename)
+        self.progress.resize(250, 50)
+        self.progress.exec_()
 
 
 if __name__ == "__main__":
